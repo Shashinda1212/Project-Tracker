@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Calendar, User, Phone, CheckCircle, Clock, XCircle, Globe, Server, Mail, DollarSign, Edit, Key, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { X, Calendar, User, Phone, CheckCircle, Clock, XCircle, Globe, Server, Mail, DollarSign, Edit, Key, Copy, Check, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { decryptPassword } from '../services/crypto';
 
 export default function ProjectDetail({ project, onEdit, onClose, masterKey, onPromptMasterKey }) {
@@ -78,9 +78,15 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
   const pluginsTotalCost = plugins.reduce((sum, p) => sum + p.cost, 0);
   const wpTotalCost = (project.themeCost || 0) + pluginsTotalCost;
 
+  // Expenses and Profit calculations
+  const domainCost = project.domainPlatform?.cost || 0;
+  const hostingCost = project.hostingPlatform?.cost || 0;
+  const themeCost = project.themeCost || 0;
+  const totalExpenses = domainCost + hostingCost + themeCost + pluginsTotalCost;
+  const netProfit = fullVal - totalExpenses;
+
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl relative flex flex-col my-8 max-h-[90vh]">
+    <div className="bg-slate-900 border border-slate-800 w-full rounded-2xl shadow-2xl relative flex flex-col animate-fadeIn">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <div className="flex items-center space-x-3">
@@ -105,9 +111,10 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 p-2 rounded-lg transition-colors cursor-pointer"
+              className="text-slate-400 hover:text-white hover:bg-slate-850 py-2.5 px-4 rounded-xl transition-all cursor-pointer text-xs font-bold flex items-center space-x-1.5 border border-slate-800 bg-slate-950/40"
             >
-              <X className="w-5 h-5" />
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to List</span>
             </button>
           </div>
         </div>
@@ -222,6 +229,52 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                 </div>
               </div>
             )}
+
+            {/* Profitability Summary */}
+            <div className="pt-4 border-t border-slate-900 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Expenses Breakdown</span>
+                <div className="space-y-1 bg-slate-900/50 p-3 rounded-xl border border-slate-800 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Domain Cost:</span>
+                    <span className="text-slate-300 font-medium">LKR {domainCost.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Hosting Cost:</span>
+                    <span className="text-slate-300 font-medium">LKR {hostingCost.toFixed(2)}</span>
+                  </div>
+                  {project.category === 'web' && project.webType === 'wordpress' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Theme Cost:</span>
+                        <span className="text-slate-300 font-medium">LKR {themeCost.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Plugins Cost:</span>
+                        <span className="text-slate-300 font-medium">LKR {pluginsTotalCost.toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex justify-between border-t border-slate-800 pt-1.5 font-bold">
+                    <span className="text-slate-400">Total Expenses:</span>
+                    <span className="text-red-400">LKR {totalExpenses.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between bg-slate-900/40 border border-slate-800/80 p-4 rounded-xl">
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Net Profitability</span>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Project Value minus all registered setup and recurring expenses.</p>
+                </div>
+                <div className="mt-4 flex items-baseline justify-between">
+                  <span className="text-xs text-slate-400 font-medium">Estimated Net Profit</span>
+                  <span className={`text-xl font-black ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    LKR {netProfit.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Credentials Area (Encrypted fields) */}
@@ -287,6 +340,10 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                       <span className="text-slate-500 italic">No password saved</span>
                     )}
                   </div>
+                  <div className="pt-1.5 border-t border-slate-900/60 mt-1">
+                    <span className="text-slate-500 block font-semibold text-slate-400">Domain Cost</span>
+                    <span className="text-slate-200 font-semibold text-emerald-400">LKR {(project.domainPlatform?.cost || 0).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 
@@ -296,6 +353,10 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                   <Server className="w-4 h-4" /> Hosting Portal
                 </span>
                 <div className="text-xs space-y-2">
+                  <div>
+                    <span className="text-slate-500 block">Hosting Provider</span>
+                    <span className="text-slate-200 font-medium">{project.hostingPlatform?.provider || 'N/A'}</span>
+                  </div>
                   <div>
                     <span className="text-slate-500 block">Hosting Type</span>
                     <span className="text-slate-200 font-medium capitalize">{project.hostingPlatform?.type || 'N/A'}</span>
@@ -336,6 +397,10 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                     ) : (
                       <span className="text-slate-500 italic">No password saved</span>
                     )}
+                  </div>
+                  <div className="pt-1.5 border-t border-slate-900/60 mt-1">
+                    <span className="text-slate-500 block font-semibold text-slate-400">Hosting Cost</span>
+                    <span className="text-slate-200 font-semibold text-emerald-400">LKR {(project.hostingPlatform?.cost || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -398,6 +463,5 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
           <span>Project created: {new Date(project.createdAt).toLocaleDateString()} • Last updated: {new Date(project.updatedAt).toLocaleDateString()}</span>
         </div>
       </div>
-    </div>
   );
 }

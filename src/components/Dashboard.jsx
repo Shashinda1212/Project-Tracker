@@ -1,30 +1,20 @@
-import React, { useState } from 'react';
-import { Search, Plus, Filter, Key, LogOut, CheckCircle, Clock, XCircle, TrendingUp, DollarSign, Calendar, ChevronRight, Settings, ShieldAlert, ShieldCheck } from 'lucide-react';
+import React from 'react';
+import { 
+  Folder, 
+  DollarSign, 
+  TrendingUp, 
+  Wallet, 
+  Calendar, 
+  FileText, 
+  Target, 
+  ChevronRight, 
+  AlertCircle, 
+  ArrowRight, 
+  Plus 
+} from 'lucide-react';
 
-export default function Dashboard({ projects, onSelectProject, onCreateProject, onLogout, masterKey, onSetMasterKey, dbError, onChangeMasterKeyClick }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-
-  // Local master key input state for the header input field
-  const [masterKeyInput, setMasterKeyInput] = useState('');
-  const [showKeyConfirm, setShowKeyConfirm] = useState(false);
-
-  const handleMasterKeySubmit = (e) => {
-    e.preventDefault();
-    if (masterKeyInput.trim()) {
-      onSetMasterKey(masterKeyInput);
-      setShowKeyConfirm(true);
-      setTimeout(() => setShowKeyConfirm(false), 2000);
-    }
-  };
-
-  const handleClearMasterKey = () => {
-    onSetMasterKey('');
-    setMasterKeyInput('');
-  };
-
-  // 1. Calculations & Aggregates
+export default function Dashboard({ projects, onSelectProject, onCreateProject }) {
+  // Calculations & Aggregates
   const totalProjects = projects.length;
   const ongoingProjects = projects.filter(p => p.status === 'ongoing').length;
   const finishedProjects = projects.filter(p => p.status === 'finished').length;
@@ -32,7 +22,6 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject, 
 
   const totalValue = projects.reduce((sum, p) => sum + (p.fullValue || 0), 0);
 
-  // Calculate total paid across all projects
   const totalPaid = projects.reduce((sum, p) => {
     const adv = p.advancePayment || 0;
     const additional = (p.paymentsList || []).reduce((s, pay) => s + pay.amount, 0);
@@ -41,39 +30,16 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject, 
 
   const totalDue = totalValue - totalPaid;
 
-  // Find nearest ongoing project deadline
-  const upcomingDeadline = projects
+  // Find nearest ongoing project deadlines (top 3)
+  const upcomingDeadlines = projects
     .filter(p => p.status === 'ongoing' && p.deliveryDate)
-    .map(p => new Date(p.deliveryDate))
-    .sort((a, b) => a - b)[0];
+    .sort((a, b) => new Date(a.deliveryDate) - new Date(b.deliveryDate))
+    .slice(0, 3);
 
-  const formattedDeadline = upcomingDeadline
-    ? upcomingDeadline.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'None scheduled';
-
-  // 2. Search & Filtering
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch =
-      project.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.clientName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.contactName || '').toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || project.category === categoryFilter;
-
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'finished':
-        return <CheckCircle className="w-4 h-4 text-emerald-400" />;
-      case 'cancelled':
-        return <XCircle className="w-4 h-4 text-red-400" />;
-      default:
-        return <Clock className="w-4 h-4 text-amber-400 animate-pulse" />;
-    }
-  };
+  // Find top 5 most recently updated projects
+  const recentProjects = projects
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 5);
 
   const getStatusTextClass = (status) => {
     switch (status) {
@@ -90,302 +56,284 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject, 
     return full - (adv + other);
   };
 
+  const getProjectInitials = (name) => {
+    if (!name) return '??';
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map(word => word[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  const getProjectColorClass = (name) => {
+    if (!name) return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    const colors = [
+      'bg-purple-500/10 text-purple-400 border-purple-500/20',
+      'bg-amber-500/10 text-amber-450 border-amber-500/20 text-amber-400',
+      'bg-sky-500/10 text-sky-400 border-sky-500/20',
+      'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      'bg-rose-500/10 text-rose-400 border-rose-500/20'
+    ];
+    let sum = 0;
+    for (let i = 0; i < name.length; i++) {
+      sum += name.charCodeAt(i);
+    }
+    return colors[sum % colors.length];
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 pb-12">
-      {/* Top Navigation */}
-      <header className="border-b border-slate-900 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-white tracking-tight">AgencyTracker</h1>
-              <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Project Ledger</p>
-            </div>
+    <div className="relative space-y-8 animate-fadeIn">
+      {/* Background Decorative Ambient Flows */}
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-brand-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Stat Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Active Projects Stat */}
+        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-purple-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(168,85,247,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
+            <Folder className="w-5 h-5" />
           </div>
-
-          {/* Master Key input console */}
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <form onSubmit={handleMasterKeySubmit} className="flex items-center bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 focus-within:border-brand-500/50 transition-all max-w-[280px] w-full">
-              <Key className={`w-4 h-4 mr-2 ${masterKey ? 'text-emerald-400' : 'text-slate-500'}`} />
-              <input
-                type="password"
-                placeholder={masterKey ? "Master Key Configured" : "Enter Master Key"}
-                value={masterKeyInput}
-                onChange={(e) => setMasterKeyInput(e.target.value)}
-                disabled={!!masterKey}
-                className="bg-transparent border-none outline-none text-xs text-white placeholder-slate-500 w-full focus:ring-0 focus:border-none focus:outline-none"
-              />
-              {masterKey ? (
-                <button
-                  type="button"
-                  onClick={handleClearMasterKey}
-                  className="text-[10px] text-red-400 hover:text-red-300 font-semibold uppercase tracking-wider ml-2 cursor-pointer"
-                >
-                  Lock
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className="text-[10px] text-brand-400 hover:text-brand-300 font-semibold uppercase tracking-wider ml-2 cursor-pointer"
-                >
-                  Apply
-                </button>
-              )}
-            </form>
-
-            {masterKey && (
-              <button
-                type="button"
-                onClick={onChangeMasterKeyClick}
-                className="text-[10px] bg-slate-950 border border-slate-800 hover:border-slate-700 text-brand-400 font-bold py-2 px-3.5 rounded-xl transition-all cursor-pointer shadow-sm uppercase tracking-wider whitespace-nowrap"
-              >
-                Change Key
-              </button>
-            )}
-
-            {/* Shield Indicator */}
-            <div className="flex-shrink-0" title={masterKey ? "Master Key is active. Passwords will decrypt dynamically." : "Master Key is locked. Sensitive credentials cannot be viewed."}>
-              {masterKey ? (
-                <ShieldCheck className="w-5 h-5 text-emerald-400 animate-pulse" />
-              ) : (
-                <ShieldAlert className="w-5 h-5 text-amber-500" />
-              )}
-            </div>
-
-            <button
-              onClick={onLogout}
-              className="text-slate-400 hover:text-white p-2 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Dashboard */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
-        
-        {dbError && (
-          <div className="p-4 bg-red-950/40 border border-red-900/50 text-red-200 text-sm rounded-2xl flex items-start space-x-3 shadow-lg">
-            <span className="font-semibold flex-shrink-0 text-red-400 text-lg">⚠️</span>
-            <div className="flex-grow">
-              <strong className="block font-bold mb-0.5 text-white">Database Sync Connection Refused:</strong>
-              <p className="text-xs text-red-300/80 leading-relaxed">
-                {dbError}. Please verify that your Cloud Firestore Security Rules permit reading/writing to the <code className="font-mono bg-slate-950 px-1 py-0.2 rounded border border-red-900/30">projects</code> collection.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Stat Grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Projects</span>
-              <span className="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 py-0.5 px-2 rounded-full font-bold">
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Projects</span>
+              <span className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 py-0.5 px-2 rounded-full font-bold uppercase tracking-wider">
                 {ongoingProjects} / {totalProjects}
               </span>
             </div>
-            <div className="text-2xl font-black text-white mt-3">{ongoingProjects} <span className="text-sm font-semibold text-slate-500">Ongoing</span></div>
-            <div className="text-xs text-slate-400 mt-2 flex items-center space-x-3">
-              <span>Finished: <strong className="text-slate-200">{finishedProjects}</strong></span>
-              <span>Cancelled: <strong className="text-slate-200">{cancelledProjects}</strong></span>
+            <div className="text-xl font-bold text-white mt-1">
+              {ongoingProjects} <span className="text-xs font-semibold text-slate-400">Ongoing</span>
+            </div>
+            <div className="text-[10px] text-slate-500 mt-1 flex items-center space-x-2">
+              <span>Finished: <strong className="text-slate-300">{finishedProjects}</strong></span>
+              <span>•</span>
+              <span>Cancelled: <strong className="text-slate-300">{cancelledProjects}</strong></span>
             </div>
           </div>
+        </div>
 
-          <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Booked Value</span>
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-black text-white mt-3">LKR {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <p className="text-xs text-slate-400 mt-2">Combined value of all projects</p>
+        {/* Booked Value Stat */}
+        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(16,185,129,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
-
-          <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Collected Revenue</span>
-              <DollarSign className="w-4 h-4 text-sky-400" />
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Booked Value</span>
+              <DollarSign className="w-3.5 h-3.5 text-emerald-500/40" />
             </div>
-            <div className="text-2xl font-black text-emerald-400 mt-3">LKR {totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <p className="text-xs text-slate-400 mt-2">
+            <div className="text-xl font-bold text-white mt-1">
+              LKR {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-slate-500 mt-1">
+              Combined value of all projects
+            </div>
+          </div>
+        </div>
+
+        {/* Collected Revenue Stat */}
+        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-sky-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(14,165,233,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-sky-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 flex-shrink-0">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Collected Revenue</span>
+              <DollarSign className="w-3.5 h-3.5 text-sky-500/40" />
+            </div>
+            <div className="text-xl font-bold text-emerald-400 mt-1">
+              LKR {totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-slate-500 mt-1">
               Advance deposits + logged payments
-            </p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Outstanding Dues</span>
-              <DollarSign className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-2xl font-black text-amber-400 mt-3">LKR {totalDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <div className="text-xs text-slate-400 mt-2 flex items-center space-x-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Next Deadline: <strong className="text-brand-300">{formattedDeadline}</strong></span>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Action Controls & Filters */}
-        <section className="bg-slate-900/60 border border-slate-900 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-grow max-w-3xl">
-            {/* Search Input */}
-            <div className="relative flex-grow">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search projects, clients, contacts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-slate-200 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 placeholder-slate-600"
-              />
+        {/* Outstanding Dues Stat */}
+        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-amber-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(245,158,11,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-455 flex-shrink-0 text-amber-400">
+            <Wallet className="w-5 h-5" />
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Outstanding Dues</span>
+              <DollarSign className="w-3.5 h-3.5 text-amber-500/40" />
             </div>
-
-            {/* Category Filter */}
-            <div className="relative">
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-4 text-slate-300 text-sm w-full sm:w-44 focus:border-brand-500 focus:ring-0 appearance-none cursor-pointer"
-              >
-                <option value="all">All Categories</option>
-                <option value="web">Web Projects</option>
-                <option value="pos">POS Systems</option>
-                <option value="other">Other Software</option>
-              </select>
+            <div className="text-xl font-bold text-amber-400 mt-1">
+              LKR {totalDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-4 text-slate-300 text-sm w-full sm:w-40 focus:border-brand-500 focus:ring-0 appearance-none cursor-pointer"
-              >
-                <option value="all">All Statuses</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="finished">Finished</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+            <div className="text-[10px] text-slate-500 mt-1 flex items-center space-x-1.5">
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <span>Next Target: <strong className="font-semibold text-slate-300">{upcomingDeadlines[0]?.deliveryDate || 'N/A'}</strong></span>
             </div>
           </div>
+        </div>
+      </section>
 
-          <button
-            onClick={onCreateProject}
-            className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm py-2.5 px-6 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-brand-500/10 transition-all hover:shadow-brand-500/20 cursor-pointer whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Project</span>
-          </button>
-        </section>
+      {/* Main Dashboard Sub-grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activity Table (Left columns) */}
+        <div className="lg:col-span-2 bg-[#0b1329]/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+          <div>
+            <div className="flex items-center justify-between pb-4 border-b border-slate-850">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">Recent Updates</h3>
+                </div>
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium tracking-wide">Last 5 active projects</span>
+            </div>
 
-        {/* Project List */}
-        <section className="bg-slate-900 border border-slate-900 rounded-2xl shadow-xl overflow-hidden">
-          <div className="border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-sm font-bold tracking-wider text-slate-400 uppercase">Project Ledger Records</h2>
-            <span className="text-xs text-slate-500">Showing {filteredProjects.length} of {projects.length} entries</span>
-          </div>
-
-          {filteredProjects.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/40 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    <th className="px-6 py-4">Project Name / Client</th>
-                    <th className="px-6 py-4">Category</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Delivery Deadline</th>
-                    <th className="px-6 py-4 text-right">Outstanding Balance</th>
-                    <th className="px-6 py-4"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {filteredProjects.map((project) => {
-                    const due = getProjectOutstandingBalance(project);
-                    return (
-                      <tr
-                        key={project.id}
-                        onClick={() => onSelectProject(project)}
-                        className="hover:bg-slate-800/25 transition-colors cursor-pointer group"
-                      >
-                        <td className="px-6 py-4.5">
-                          <div className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm">
-                            {project.projectName}
-                          </div>
-                          <div className="text-xs text-slate-400 mt-1 font-medium flex items-center space-x-1">
-                            <span>{project.clientName || 'No Client'}</span>
-                            {project.contactName && (
-                              <>
-                                <span>•</span>
-                                <span>{project.contactName}</span>
-                              </>
+            {recentProjects.length > 0 ? (
+              <div className="overflow-x-auto text-sm">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-850/60 bg-transparent text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 pr-4 pl-0">Project</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Outstanding</th>
+                      <th className="py-3 pl-4 pr-0"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-850/40">
+                    {recentProjects.map((project) => {
+                      const due = getProjectOutstandingBalance(project);
+                      const initials = getProjectInitials(project.projectName);
+                      const colorClass = getProjectColorClass(project.projectName);
+                      return (
+                        <tr
+                          key={project.id}
+                          onClick={() => onSelectProject(project)}
+                          className="hover:bg-slate-850/40 transition-colors cursor-pointer group"
+                        >
+                          <td className="py-3.5 pr-4 pl-0">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center text-[10px] font-extrabold ${colorClass} flex-shrink-0 shadow-sm`}>
+                                {initials}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-bold text-white group-hover:text-brand-300 transition-colors block text-xs truncate max-w-[160px] sm:max-w-[240px]">
+                                  {project.projectName}
+                                </span>
+                                <span className="text-[10px] text-slate-500 block mt-0.5 font-medium truncate max-w-[160px] sm:max-w-[240px]">{project.clientName || 'No Client'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center space-x-1.5 font-bold text-[9px] uppercase tracking-wider">
+                              <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'finished' ? 'bg-emerald-400' : project.status === 'cancelled' ? 'bg-red-400' : 'bg-amber-400 animate-pulse'}`} />
+                              <span className={getStatusTextClass(project.status)}>{project.status}</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-mono font-bold text-xs whitespace-nowrap">
+                            {due > 0 ? (
+                              <span className="text-amber-400 font-semibold">LKR {due.toFixed(2)}</span>
+                            ) : due === 0 && (project.fullValue || 0) > 0 ? (
+                              <span className="text-emerald-400">Paid</span>
+                            ) : (
+                              <span className="text-slate-650 text-slate-600">—</span>
                             )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4.5">
-                          <div className="flex flex-col items-start gap-1">
-                            <span className="text-xs text-slate-200 capitalize font-medium">
-                              {project.category === 'web' ? 'Web System' : project.category === 'pos' ? 'Point of Sale' : 'Other Code'}
-                            </span>
-                            {project.category === 'web' && (
-                              <span className="text-[10px] bg-slate-800 text-slate-400 border border-slate-800 py-0.5 px-2 rounded-full font-bold uppercase tracking-wider">
-                                {project.webType === 'wordpress' ? 'WordPress' : 'Custom Code'}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4.5">
-                          <div className="flex items-center space-x-2 font-bold text-xs uppercase tracking-wider">
-                            {getStatusIcon(project.status)}
-                            <span className={getStatusTextClass(project.status)}>{project.status}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4.5 text-slate-300 font-semibold text-xs">
-                          {project.deliveryDate ? (
-                            <span className="flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                              {project.deliveryDate}
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 italic">Unscheduled</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4.5 text-right font-mono font-bold text-sm">
-                          {due > 0 ? (
-                            <span className="text-amber-400">LKR {due.toFixed(2)}</span>
-                          ) : due === 0 && (project.fullValue || 0) > 0 ? (
-                            <span className="text-emerald-400">Paid</span>
-                          ) : (
-                            <span className="text-slate-600">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4.5 text-right">
-                          <button className="text-slate-500 group-hover:text-brand-400 transition-colors p-1.5 hover:bg-slate-850 rounded-lg cursor-pointer">
-                            <ChevronRight className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="py-3.5 pl-4 pr-0 text-right">
+                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-brand-400 transition-all inline" />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-12 text-center text-slate-500 text-xs italic">No projects logged yet.</div>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-slate-850/60 flex items-center justify-center">
+            <button
+              onClick={() => onSelectProject(null)}
+              className="text-slate-400 hover:text-white transition-colors font-bold text-[10px] uppercase tracking-widest flex items-center space-x-2 cursor-pointer"
+            >
+              <span>View Full Project Ledger</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Upcoming Deadlines (Right column) */}
+        <div className="bg-[#0b1329]/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-850">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                  <Target className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">Upcoming Targets</h3>
+                </div>
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium tracking-wide">Nearest milestones</span>
             </div>
-          ) : (
-            <div className="p-12 text-center text-slate-500">
-              <p className="text-sm font-medium">No projects match the selected search filters.</p>
-              <button
-                onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); }}
-                className="mt-4 text-xs font-bold text-brand-400 hover:text-brand-300 underline cursor-pointer"
-              >
-                Reset Search Filters
-              </button>
-            </div>
-          )}
-        </section>
-      </main>
+
+            {upcomingDeadlines.length > 0 ? (
+              <div className="space-y-3.5">
+                {upcomingDeadlines.map((project) => {
+                  const deadlineDate = new Date(project.deliveryDate);
+                  const isOverdue = deadlineDate < new Date() && project.status === 'ongoing';
+                  return (
+                    <div
+                      key={project.id}
+                      onClick={() => onSelectProject(project)}
+                      className={`bg-slate-950/40 p-4 rounded-xl transition-all cursor-pointer space-y-2.5 border group ${
+                        isOverdue
+                          ? 'border-red-500/30 shadow-[0_0_12px_-3px_rgba(239,68,68,0.25)] hover:border-red-500/50'
+                          : 'border-slate-850 hover:border-slate-800'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="font-bold text-white text-xs group-hover:text-brand-300 transition-colors truncate">
+                          {project.projectName}
+                        </span>
+                        {isOverdue && (
+                          <span className="flex-shrink-0 text-[8px] bg-red-500/10 border border-red-500/20 text-red-400 font-bold uppercase py-0.5 px-2 rounded-full flex items-center gap-1 tracking-wider">
+                            <AlertCircle className="w-3 h-3" /> Overdue
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-slate-550">
+                        <span className="text-slate-500">Client: <strong className="text-slate-400 font-medium">{project.clientName || 'N/A'}</strong></span>
+                        <span className={`font-semibold flex items-center gap-1.5 ${isOverdue ? 'text-red-400 font-extrabold animate-pulse' : 'text-slate-400'}`}>
+                          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                          {project.deliveryDate}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-500 text-xs italic">No ongoing projects scheduled.</div>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-slate-850/60 flex items-center justify-center">
+            <button
+              onClick={onCreateProject}
+              className="text-slate-400 hover:text-white transition-colors font-bold text-[10px] uppercase tracking-widest flex items-center space-x-2.5 cursor-pointer"
+            >
+              <span>Add New Project</span>
+              <div className="w-6 h-6 border border-slate-800 hover:border-slate-700 rounded bg-slate-950 flex items-center justify-center text-slate-400">
+                <Plus className="w-3.5 h-3.5" />
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

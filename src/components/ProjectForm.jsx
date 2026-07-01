@@ -18,8 +18,8 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
     themeCost: 0,
     fullValue: 0,
     advancePayment: 0,
-    domainPlatform: { platformName: '', username: '', password: '', email: '' },
-    hostingPlatform: { type: 'shared', username: '', password: '', email: '' },
+    domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
+    hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
     gmail: { email: '', password: '' }
   });
 
@@ -69,13 +69,16 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
           platformName: project.domainPlatform?.platformName || '',
           username: project.domainPlatform?.username || '',
           password: '',
-          email: project.domainPlatform?.email || ''
+          email: project.domainPlatform?.email || '',
+          cost: project.domainPlatform?.cost || 0
         },
         hostingPlatform: {
           type: project.hostingPlatform?.type || 'shared',
+          provider: project.hostingPlatform?.provider || '',
           username: project.hostingPlatform?.username || '',
           password: '',
-          email: project.hostingPlatform?.email || ''
+          email: project.hostingPlatform?.email || '',
+          cost: project.hostingPlatform?.cost || 0
         },
         gmail: {
           email: project.gmail?.email || '',
@@ -113,8 +116,8 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         themeCost: 0,
         fullValue: '',
         advancePayment: '',
-        domainPlatform: { platformName: '', username: '', password: '', email: '' },
-        hostingPlatform: { type: 'shared', username: '', password: '', email: '' },
+        domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
+        hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
         gmail: { email: '', password: '' }
       });
       setPluginsList([]);
@@ -269,6 +272,13 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
   // Plugins total cost
   const pluginsTotalCost = pluginsList.reduce((sum, p) => sum + p.cost, 0);
 
+  // Expense and Profit calculations
+  const domainCost = parseFloat(formData.domainPlatform.cost) || 0;
+  const hostingCost = parseFloat(formData.hostingPlatform.cost) || 0;
+  const themeCost = parseFloat(formData.themeCost) || 0;
+  const totalExpenses = domainCost + hostingCost + themeCost + pluginsTotalCost;
+  const netProfit = fullVal - totalExpenses;
+
   // Form Submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -310,10 +320,12 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         paymentsList: paymentsList,
         domainPlatform: {
           ...formData.domainPlatform,
+          cost: parseFloat(formData.domainPlatform.cost) || 0,
           password: domainPass
         },
         hostingPlatform: {
           ...formData.hostingPlatform,
+          cost: parseFloat(formData.hostingPlatform.cost) || 0,
           password: hostingPass
         },
         gmail: {
@@ -671,6 +683,17 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                 </div>
               )}
             </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Domain Cost (LKR)</label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.domainPlatform.cost}
+                onChange={(e) => handleNestedChange('domainPlatform', 'cost', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm"
+              />
+            </div>
           </div>
 
           {/* Hosting Platform Info */}
@@ -678,6 +701,16 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
             <div className="flex items-center space-x-2 text-white font-semibold text-sm mb-1">
               <Server className="w-4 h-4 text-emerald-400" />
               <span>Hosting Platform</span>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Hosting Provider</label>
+              <input
+                type="text"
+                placeholder="e.g., Hostinger, GoDaddy, AWS"
+                value={formData.hostingPlatform.provider}
+                onChange={(e) => handleNestedChange('hostingPlatform', 'provider', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm"
+              />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 mb-1">Hosting Type</label>
@@ -736,6 +769,17 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                   </button>
                 </div>
               )}
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Hosting Cost (LKR)</label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.hostingPlatform.cost}
+                onChange={(e) => handleNestedChange('hostingPlatform', 'cost', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm"
+              />
             </div>
           </div>
 
@@ -823,6 +867,49 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
             <div className={`w-full bg-slate-950 border rounded-xl py-3 px-4 font-bold text-lg select-none flex items-center ${dueAmount > 0 ? 'border-amber-900/60 text-amber-400' : dueAmount === 0 && fullVal > 0 ? 'border-emerald-900/60 text-emerald-400' : 'border-slate-800 text-slate-500'}`}>
               LKR {dueAmount.toFixed(2)}
             </div>
+          </div>
+        </div>
+
+        {/* Live Profitability Summary */}
+        <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+            <span className="text-xs font-semibold text-slate-300">Live Profitability Summary</span>
+            <span className="text-[10px] text-slate-500 font-medium">Auto-calculated from inputs</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-900 border border-slate-800/80 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 block">Total Revenue</span>
+              <span className="text-sm font-bold text-white">LKR {fullVal.toFixed(2)}</span>
+            </div>
+            <div className="bg-slate-900 border border-slate-800/80 p-3 rounded-lg">
+              <span className="text-[10px] text-slate-500 block">Total Expenses</span>
+              <span className="text-sm font-bold text-red-400">LKR {totalExpenses.toFixed(2)}</span>
+            </div>
+            <div className={`border p-3 rounded-lg ${netProfit >= 0 ? 'bg-emerald-950/10 border-emerald-900/30' : 'bg-red-950/10 border-red-900/30'}`}>
+              <span className="text-[10px] text-slate-500 block">Estimated Net Profit</span>
+              <span className={`text-sm font-extrabold ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                LKR {netProfit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-400 bg-slate-900/30 p-2.5 rounded-lg border border-slate-800/40">
+            <div>
+              <span className="text-slate-500">Domain Cost:</span> LKR {domainCost.toFixed(2)}
+            </div>
+            <div>
+              <span className="text-slate-500">Hosting Cost:</span> LKR {hostingCost.toFixed(2)}
+            </div>
+            {formData.webType === 'wordpress' && (
+              <>
+                <div>
+                  <span className="text-slate-500">Theme Cost:</span> LKR {themeCost.toFixed(2)}
+                </div>
+                <div>
+                  <span className="text-slate-500">Plugins Cost:</span> LKR {pluginsTotalCost.toFixed(2)}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
