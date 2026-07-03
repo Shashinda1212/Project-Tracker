@@ -7,7 +7,9 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
   const [showPlainPasswords, setShowPlainPasswords] = useState({
     domain: false,
     hosting: false,
-    gmail: false
+    gmail: false,
+    wpAdmin: false,
+    cpanel: false
   });
 
   if (!project) return null;
@@ -26,6 +28,8 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
   const domainPass = getDecryptedVal(project.domainPlatform?.password);
   const hostingPass = getDecryptedVal(project.hostingPlatform?.password);
   const gmailPass = getDecryptedVal(project.gmail?.password);
+  const wpAdminPass = getDecryptedVal(project.wpAdmin?.password);
+  const cpanelPass = getDecryptedVal(project.cpanel?.password);
 
   const handleCopy = (text, fieldName) => {
     if (!text || text === '__LOCKED__' || text === '__BAD_KEY__') return;
@@ -292,7 +296,7 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {/* Domain Credentials Card */}
               <div className="bg-slate-950 border border-slate-800/60 rounded-xl p-5 space-y-3.5">
                 <span className="text-sm font-semibold text-sky-400 flex items-center gap-1.5">
@@ -446,6 +450,122 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                   </div>
                 </div>
               </div>
+
+              {/* cPanel Credentials Card */}
+              <div className="bg-slate-950 border border-slate-800/60 rounded-xl p-5 space-y-3.5">
+                <span className="text-sm font-semibold text-brand-400 flex items-center gap-1.5">
+                  <Server className="w-4 h-4" /> cPanel Logins
+                </span>
+                <div className="text-xs space-y-2">
+                  <div>
+                    <span className="text-slate-500 block">cPanel URL</span>
+                    {project.cpanel?.url ? (
+                      <a
+                        href={project.cpanel.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-400 hover:text-brand-300 font-medium underline break-all inline-block mt-0.5"
+                      >
+                        {project.cpanel.url}
+                      </a>
+                    ) : (
+                      <span className="text-slate-200 font-medium">N/A</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Username</span>
+                    <span className="text-slate-200 font-medium">{project.cpanel?.username || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Password</span>
+                    {cpanelPass === '__LOCKED__' ? (
+                      <span className="text-amber-500 italic font-semibold">🔒 Locked</span>
+                    ) : cpanelPass === '__BAD_KEY__' ? (
+                      <span className="text-red-500 italic font-semibold">❌ Decryption Failed</span>
+                    ) : cpanelPass ? (
+                      <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-1.5 pl-2.5 rounded-lg text-slate-200 font-mono mt-1">
+                        <span>{showPlainPasswords.cpanel ? cpanelPass : '••••••••'}</span>
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => setShowPlainPasswords(prev => ({ ...prev, cpanel: !prev.cpanel }))}
+                            className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                          >
+                            {showPlainPasswords.cpanel ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => handleCopy(cpanelPass, 'cpanel')}
+                            className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                            title="Copy Password"
+                          >
+                            {copiedField === 'cpanel' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 italic">No password saved</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* WP Admin Credentials Card */}
+              {project.category === 'web' && project.webType === 'wordpress' && (
+                <div className="bg-slate-950 border border-slate-800/60 rounded-xl p-5 space-y-3.5">
+                  <span className="text-sm font-semibold text-brand-400 flex items-center gap-1.5">
+                    <Key className="w-4 h-4" /> WP Admin Logins
+                  </span>
+                  <div className="text-xs space-y-2">
+                    <div>
+                      <span className="text-slate-500 block">Admin URL</span>
+                      {project.wpAdmin?.url ? (
+                        <a
+                          href={project.wpAdmin.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand-400 hover:text-brand-300 font-medium underline break-all inline-block mt-0.5"
+                        >
+                          {project.wpAdmin.url}
+                        </a>
+                      ) : (
+                        <span className="text-slate-200 font-medium">N/A</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Username/Email</span>
+                      <span className="text-slate-200 font-medium">{project.wpAdmin?.username || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block">Password</span>
+                      {wpAdminPass === '__LOCKED__' ? (
+                        <span className="text-amber-500 italic font-semibold">🔒 Locked</span>
+                      ) : wpAdminPass === '__BAD_KEY__' ? (
+                        <span className="text-red-500 italic font-semibold">❌ Decryption Failed</span>
+                      ) : wpAdminPass ? (
+                        <div className="flex items-center justify-between bg-slate-900 border border-slate-800 p-1.5 pl-2.5 rounded-lg text-slate-200 font-mono mt-1">
+                          <span>{showPlainPasswords.wpAdmin ? wpAdminPass : '••••••••'}</span>
+                          <div className="flex items-center space-x-1">
+                            <button
+                              onClick={() => setShowPlainPasswords(prev => ({ ...prev, wpAdmin: !prev.wpAdmin }))}
+                              className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                            >
+                              {showPlainPasswords.wpAdmin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => handleCopy(wpAdminPass, 'wpAdmin')}
+                              className="p-1 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                              title="Copy Password"
+                            >
+                              {copiedField === 'wpAdmin' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 italic">No password saved</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

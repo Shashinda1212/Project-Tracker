@@ -20,7 +20,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
     advancePayment: 0,
     domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
     hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
-    gmail: { email: '', password: '' }
+    gmail: { email: '', password: '' },
+    wpAdmin: { url: '', username: '', password: '' },
+    cpanel: { url: '', username: '', password: '' }
   });
 
   // Track WordPress plugins locally in form state
@@ -38,14 +40,18 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
   const [originalCiphers, setOriginalCiphers] = useState({
     domain: '',
     hosting: '',
-    gmail: ''
+    gmail: '',
+    wpAdmin: '',
+    cpanel: ''
   });
 
   // Decrypted states or placeholders
   const [decryptedState, setDecryptedState] = useState({
     domain: { unlocked: false, value: '' },
     hosting: { unlocked: false, value: '' },
-    gmail: { unlocked: false, value: '' }
+    gmail: { unlocked: false, value: '' },
+    wpAdmin: { unlocked: false, value: '' },
+    cpanel: { unlocked: false, value: '' }
   });
 
   // Load project data if editing
@@ -83,6 +89,16 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         gmail: {
           email: project.gmail?.email || '',
           password: ''
+        },
+        wpAdmin: {
+          url: project.wpAdmin?.url || '',
+          username: project.wpAdmin?.username || '',
+          password: ''
+        },
+        cpanel: {
+          url: project.cpanel?.url || '',
+          username: project.cpanel?.username || '',
+          password: ''
         }
       };
 
@@ -94,7 +110,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
       const ciphers = {
         domain: project.domainPlatform?.password || '',
         hosting: project.hostingPlatform?.password || '',
-        gmail: project.gmail?.password || ''
+        gmail: project.gmail?.password || '',
+        wpAdmin: project.wpAdmin?.password || '',
+        cpanel: project.cpanel?.password || ''
       };
       setOriginalCiphers(ciphers);
 
@@ -118,15 +136,19 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         advancePayment: '',
         domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
         hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
-        gmail: { email: '', password: '' }
+        gmail: { email: '', password: '' },
+        wpAdmin: { url: '', username: '', password: '' },
+        cpanel: { url: '', username: '', password: '' }
       });
       setPluginsList([]);
       setPaymentsList([]);
-      setOriginalCiphers({ domain: '', hosting: '', gmail: '' });
+      setOriginalCiphers({ domain: '', hosting: '', gmail: '', wpAdmin: '', cpanel: '' });
       setDecryptedState({
         domain: { unlocked: true, value: '' },
         hosting: { unlocked: true, value: '' },
-        gmail: { unlocked: true, value: '' }
+        gmail: { unlocked: true, value: '' },
+        wpAdmin: { unlocked: true, value: '' },
+        cpanel: { unlocked: true, value: '' }
       });
     }
   }, [project, masterKey]);
@@ -137,7 +159,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
       setDecryptedState({
         domain: { unlocked: false, value: '' },
         hosting: { unlocked: false, value: '' },
-        gmail: { unlocked: false, value: '' }
+        gmail: { unlocked: false, value: '' },
+        wpAdmin: { unlocked: false, value: '' },
+        cpanel: { unlocked: false, value: '' }
       });
       return;
     }
@@ -192,6 +216,38 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
       nextState.gmail = { unlocked: true, value: '' };
     }
 
+    // Decrypt WP Admin
+    if (ciphers.wpAdmin) {
+      try {
+        const dec = decryptPassword(ciphers.wpAdmin, mKey);
+        nextState.wpAdmin = { unlocked: true, value: dec };
+        setFormData(prev => ({
+          ...prev,
+          wpAdmin: { ...prev.wpAdmin, password: dec }
+        }));
+      } catch (err) {
+        nextState.wpAdmin = { unlocked: false, value: '' };
+      }
+    } else {
+      nextState.wpAdmin = { unlocked: true, value: '' };
+    }
+
+    // Decrypt cPanel
+    if (ciphers.cpanel) {
+      try {
+        const dec = decryptPassword(ciphers.cpanel, mKey);
+        nextState.cpanel = { unlocked: true, value: dec };
+        setFormData(prev => ({
+          ...prev,
+          cpanel: { ...prev.cpanel, password: dec }
+        }));
+      } catch (err) {
+        nextState.cpanel = { unlocked: false, value: '' };
+      }
+    } else {
+      nextState.cpanel = { unlocked: true, value: '' };
+    }
+
     setDecryptedState(nextState);
   };
 
@@ -216,9 +272,10 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
 
     // If changing password manually, mark as unlocked and track new plain value
     if (field === 'password') {
+      const stateKey = section === 'domainPlatform' ? 'domain' : section === 'hostingPlatform' ? 'hosting' : section === 'wpAdmin' ? 'wpAdmin' : section === 'cpanel' ? 'cpanel' : 'gmail';
       setDecryptedState(prev => ({
         ...prev,
-        [section === 'domainPlatform' ? 'domain' : section === 'hostingPlatform' ? 'hosting' : 'gmail']: {
+        [stateKey]: {
           unlocked: true,
           value: value
         }
@@ -288,7 +345,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
     const requiresEncryptionKey =
       (formData.domainPlatform.password && decryptedState.domain.unlocked) ||
       (formData.hostingPlatform.password && decryptedState.hosting.unlocked) ||
-      (formData.gmail.password && decryptedState.gmail.unlocked);
+      (formData.gmail.password && decryptedState.gmail.unlocked) ||
+      (formData.wpAdmin.password && decryptedState.wpAdmin.unlocked) ||
+      (formData.cpanel.password && decryptedState.cpanel.unlocked);
 
     if (requiresEncryptionKey && !masterKey) {
       alert("Master Key is required to encrypt passwords before saving. Please enter the Master Key in the prompt.");
@@ -311,6 +370,14 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         ? (formData.gmail.password ? encryptPassword(formData.gmail.password, masterKey) : '')
         : originalCiphers.gmail;
 
+      const wpAdminPass = decryptedState.wpAdmin.unlocked
+        ? (formData.wpAdmin.password ? encryptPassword(formData.wpAdmin.password, masterKey) : '')
+        : originalCiphers.wpAdmin;
+
+      const cpanelPass = decryptedState.cpanel.unlocked
+        ? (formData.cpanel.password ? encryptPassword(formData.cpanel.password, masterKey) : '')
+        : originalCiphers.cpanel;
+
       const finalProjectData = {
         ...formData,
         fullValue: parseFloat(formData.fullValue) || 0,
@@ -331,6 +398,14 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         gmail: {
           ...formData.gmail,
           password: gmailPass
+        },
+        wpAdmin: {
+          ...formData.wpAdmin,
+          password: wpAdminPass
+        },
+        cpanel: {
+          ...formData.cpanel,
+          password: cpanelPass
         },
         updatedAt: new Date().toISOString()
       };
@@ -604,6 +679,59 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                     </div>
                   </div>
                 </div>
+
+                {/* WordPress Admin Logins */}
+                <div className="md:col-span-2 border-t border-slate-800/60 pt-6 space-y-4">
+                  <div className="flex items-center space-x-2 text-white font-semibold text-sm">
+                    <Key className="w-4 h-4 text-brand-400" />
+                    <span>WP Admin Logins</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">WP Admin URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/wp-admin"
+                        value={formData.wpAdmin?.url || ''}
+                        onChange={(e) => handleNestedChange('wpAdmin', 'url', e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">Username/Email</label>
+                      <input
+                        type="text"
+                        placeholder="admin"
+                        value={formData.wpAdmin?.username || ''}
+                        onChange={(e) => handleNestedChange('wpAdmin', 'username', e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-400 mb-1">Password</label>
+                      {decryptedState.wpAdmin?.unlocked ? (
+                        <input
+                          type="password"
+                          placeholder="Password"
+                          value={formData.wpAdmin?.password || ''}
+                          onChange={(e) => handleNestedChange('wpAdmin', 'password', e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+                        />
+                      ) : (
+                        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-amber-400 font-semibold justify-between h-[38px]">
+                          <span>[Encrypted Password]</span>
+                          <button
+                            type="button"
+                            onClick={onPromptMasterKey}
+                            className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-300 py-1 px-2 rounded hover:bg-amber-500/20 cursor-pointer"
+                          >
+                            Unlock
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -623,7 +751,7 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Domain Platform Info */}
           <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
             <div className="flex items-center space-x-2 text-white font-semibold text-sm mb-1">
@@ -811,6 +939,57 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                 />
               ) : (
                 <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-amber-400 font-semibold justify-between">
+                  <span>[Encrypted Password]</span>
+                  <button
+                    type="button"
+                    onClick={onPromptMasterKey}
+                    className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-300 py-1 px-2 rounded hover:bg-amber-500/20 cursor-pointer"
+                  >
+                    Unlock
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* cPanel Credentials */}
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
+            <div className="flex items-center space-x-2 text-white font-semibold text-sm mb-1">
+              <Server className="w-4 h-4 text-brand-400" />
+              <span>cPanel Logins</span>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">cPanel URL</label>
+              <input
+                type="url"
+                placeholder="https://example.com:2083"
+                value={formData.cpanel?.url || ''}
+                onChange={(e) => handleNestedChange('cpanel', 'url', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Username</label>
+              <input
+                type="text"
+                placeholder="cpanel_username"
+                value={formData.cpanel?.username || ''}
+                onChange={(e) => handleNestedChange('cpanel', 'username', e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Password</label>
+              {decryptedState.cpanel?.unlocked ? (
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.cpanel?.password || ''}
+                  onChange={(e) => handleNestedChange('cpanel', 'password', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm focus:border-brand-500 focus:ring-0 placeholder-slate-750"
+                />
+              ) : (
+                <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-amber-400 font-semibold justify-between h-[38px]">
                   <span>[Encrypted Password]</span>
                   <button
                     type="button"

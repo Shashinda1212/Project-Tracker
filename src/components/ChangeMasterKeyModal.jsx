@@ -61,6 +61,20 @@ export default function ChangeMasterKeyModal({ projects, currentMasterKey, onKey
           successfulDecryptions++;
         } catch (e) {}
       }
+      if (proj.wpAdmin?.password) {
+        encryptFieldsFound++;
+        try {
+          decryptPassword(proj.wpAdmin.password, currentKeyInput);
+          successfulDecryptions++;
+        } catch (e) {}
+      }
+      if (proj.cpanel?.password) {
+        encryptFieldsFound++;
+        try {
+          decryptPassword(proj.cpanel.password, currentKeyInput);
+          successfulDecryptions++;
+        } catch (e) {}
+      }
     }
 
     // If there are encrypted fields in the DB, but we couldn't decrypt any of them:
@@ -133,6 +147,40 @@ export default function ChangeMasterKeyModal({ projects, currentMasterKey, onKey
         } catch (err) {
           failed++;
           console.error(`Failed to decrypt gmail for project: ${proj.projectName}`);
+          continue;
+        }
+      }
+
+      // WP Admin Password
+      if (proj.wpAdmin?.password) {
+        try {
+          const plain = decryptPassword(proj.wpAdmin.password, currentKeyInput);
+          const cipher = encryptPassword(plain, newKey);
+          updatedCredentials.wpAdmin = {
+            ...proj.wpAdmin,
+            password: cipher
+          };
+          docNeedsUpdate = true;
+        } catch (err) {
+          failed++;
+          console.error(`Failed to decrypt WP Admin for project: ${proj.projectName}`);
+          continue;
+        }
+      }
+
+      // cPanel Password
+      if (proj.cpanel?.password) {
+        try {
+          const plain = decryptPassword(proj.cpanel.password, currentKeyInput);
+          const cipher = encryptPassword(plain, newKey);
+          updatedCredentials.cpanel = {
+            ...proj.cpanel,
+            password: cipher
+          };
+          docNeedsUpdate = true;
+        } catch (err) {
+          failed++;
+          console.error(`Failed to decrypt cPanel for project: ${proj.projectName}`);
           continue;
         }
       }
