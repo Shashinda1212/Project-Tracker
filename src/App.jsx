@@ -219,7 +219,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-12">
       {/* Top Navigation */}
       <header className="border-b border-slate-900 bg-slate-905/40 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="w-full mx-auto px-30 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
               <TrendingUp className="w-5 h-5" />
@@ -330,7 +330,7 @@ export default function App() {
       </header>
 
       {/* Main Page Layout */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 mt-8 space-y-8">
+      <main className="w-full mx-auto px-30 mt-8 space-y-8">
         {dbError && (
           <div className="p-4 bg-red-950/40 border border-red-900/50 text-red-200 text-sm rounded-2xl flex items-start space-x-3 shadow-lg">
             <span className="font-semibold flex-shrink-0 text-red-400 text-lg">⚠️</span>
