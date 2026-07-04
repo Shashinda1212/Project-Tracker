@@ -11,7 +11,9 @@ import {
   AlertCircle, 
   ArrowRight, 
   Plus,
-  Coins
+  Coins,
+  Globe,
+  Server
 } from 'lucide-react';
 
 export default function Dashboard({ projects, onSelectProject, onCreateProject }) {
@@ -51,6 +53,59 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
   const recentProjects = projects
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
     .slice(0, 5);
+
+  // Find expiring assets (domains, and hosting platforms if type is shared hosting)
+  const expiringAlerts = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const thirtyDaysFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  projects.forEach(p => {
+    // 1. Check Domain Platform Expiration
+    if (p.domainPlatform?.expirationDate) {
+      const expiryDateStr = p.domainPlatform.expirationDate;
+      const expiryDate = new Date(expiryDateStr);
+      if (!isNaN(expiryDate.getTime()) && expiryDate <= thirtyDaysFromNow) {
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        expiringAlerts.push({
+          type: 'domain',
+          project: p,
+          projectName: p.projectName,
+          itemName: p.domainPlatform.platformName || 'Domain',
+          expiryDate: expiryDateStr,
+          daysLeft,
+          isExpired: daysLeft <= 0
+        });
+      }
+    }
+
+    // 2. Check Hosting Platform Expiration (if shared hosting)
+    if (p.hostingPlatform?.type === 'shared' && p.hostingPlatform?.expirationDate) {
+      const expiryDateStr = p.hostingPlatform.expirationDate;
+      const expiryDate = new Date(expiryDateStr);
+      if (!isNaN(expiryDate.getTime()) && expiryDate <= thirtyDaysFromNow) {
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        expiringAlerts.push({
+          type: 'hosting',
+          project: p,
+          projectName: p.projectName,
+          itemName: p.hostingPlatform.provider || 'Hosting',
+          expiryDate: expiryDateStr,
+          daysLeft,
+          isExpired: daysLeft <= 0
+        });
+      }
+    }
+  });
+
+  // Sort by expired first, then days remaining
+  expiringAlerts.sort((a, b) => {
+    if (a.isExpired && !b.isExpired) return -1;
+    if (!a.isExpired && b.isExpired) return 1;
+    return a.daysLeft - b.daysLeft;
+  });
 
   const getStatusTextClass = (status) => {
     switch (status) {
@@ -201,7 +256,66 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
             </div>
           </div>
         </div>
-      </section>
+      </section>      {/* Expiring Assets Alert */}
+      {expiringAlerts.length > 0 && (
+        <section className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 shadow-[0_0_20px_-3px_rgba(245,158,11,0.1)] space-y-4">
+          <div className="flex items-center space-x-3 pb-3 border-b border-amber-500/10">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <AlertCircle className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400">Asset Renewal Alerts</h3>
+              <p className="text-xs text-slate-400 mt-0.5">The following domains or shared hosting platforms are expired or expiring within the next 30 days.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {expiringAlerts.map(({ type, project, projectName, itemName, expiryDate, daysLeft, isExpired }) => (
+              <div 
+                key={`${project.id}-${type}`}
+                onClick={() => onSelectProject(project)}
+                className="bg-slate-950/55 hover:bg-slate-950/80 border border-amber-500/10 hover:border-amber-500/30 p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div className="min-w-0 flex-grow">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm truncate max-w-[130px] sm:max-w-[180px]">
+                      {projectName}
+                    </span>
+                    <span className={`text-[9px] font-bold uppercase py-0.5 px-2 rounded-full border flex items-center gap-1 ${
+                      type === 'domain' 
+                        ? 'bg-sky-500/10 border-sky-500/20 text-sky-400' 
+                        : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    }`}>
+                      {type === 'domain' ? <Globe className="w-2.5 h-2.5" /> : <Server className="w-2.5 h-2.5" />}
+                      <span>{type}</span>
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-400 block mt-1 font-medium truncate max-w-[180px]">
+                    Platform: {itemName || 'N/A'}
+                  </span>
+                  <span className="text-xs text-slate-500 block mt-0.5 font-medium">
+                    Expiry Date: {expiryDate}
+                  </span>
+                </div>
+                <div className="flex-shrink-0 text-right ml-4">
+                  {isExpired ? (
+                    <span className="text-xs font-bold uppercase py-1 px-3 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 animate-pulse">
+                      Expired
+                    </span>
+                  ) : (
+                    <span className={`text-xs font-bold uppercase py-1 px-3 rounded-full flex items-center gap-1.5 border ${
+                      daysLeft <= 7 
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-450 animate-pulse' 
+                        : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                    }`}>
+                      {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Main Dashboard Sub-grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

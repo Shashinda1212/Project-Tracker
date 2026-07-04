@@ -344,6 +344,14 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                       <span className="text-slate-500 italic">No password saved</span>
                     )}
                   </div>
+                  <div>
+                    <span className="text-slate-500 block">Registration Date</span>
+                    <span className="text-slate-200 font-medium">{project.domainPlatform?.registrationDate || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Expiration Date</span>
+                    <span className="text-slate-200 font-medium">{project.domainPlatform?.expirationDate || 'N/A'}</span>
+                  </div>
                   <div className="pt-1.5 border-t border-slate-900/60 mt-1">
                     <span className="text-slate-500 block font-semibold text-slate-400">Domain Cost</span>
                     <span className="text-slate-200 font-semibold text-emerald-400">LKR {(project.domainPlatform?.cost || 0).toFixed(2)}</span>
@@ -402,6 +410,18 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
                       <span className="text-slate-500 italic">No password saved</span>
                     )}
                   </div>
+                  {project.hostingPlatform?.type === 'shared' && (
+                    <>
+                      <div>
+                        <span className="text-slate-500 block">Hosting Registration Date</span>
+                        <span className="text-slate-200 font-medium">{project.hostingPlatform?.registrationDate || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block">Hosting Expiration Date</span>
+                        <span className="text-slate-200 font-medium">{project.hostingPlatform?.expirationDate || 'N/A'}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="pt-1.5 border-t border-slate-900/60 mt-1">
                     <span className="text-slate-500 block font-semibold text-slate-400">Hosting Cost</span>
                     <span className="text-slate-200 font-semibold text-emerald-400">LKR {(project.hostingPlatform?.cost || 0).toFixed(2)}</span>

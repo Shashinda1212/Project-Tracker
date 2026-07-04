@@ -18,8 +18,8 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
     themeCost: 0,
     fullValue: 0,
     advancePayment: 0,
-    domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
-    hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
+    domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '', registrationDate: '', expirationDate: '' },
+    hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '', registrationDate: '', expirationDate: '' },
     gmail: { email: '', password: '' },
     wpAdmin: { url: '', username: '', password: '' },
     cpanel: { url: '', username: '', password: '' }
@@ -76,7 +76,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
           username: project.domainPlatform?.username || '',
           password: '',
           email: project.domainPlatform?.email || '',
-          cost: project.domainPlatform?.cost || 0
+          cost: project.domainPlatform?.cost || 0,
+          registrationDate: project.domainPlatform?.registrationDate || '',
+          expirationDate: project.domainPlatform?.expirationDate || ''
         },
         hostingPlatform: {
           type: project.hostingPlatform?.type || 'shared',
@@ -84,7 +86,9 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
           username: project.hostingPlatform?.username || '',
           password: '',
           email: project.hostingPlatform?.email || '',
-          cost: project.hostingPlatform?.cost || 0
+          cost: project.hostingPlatform?.cost || 0,
+          registrationDate: project.hostingPlatform?.registrationDate || '',
+          expirationDate: project.hostingPlatform?.expirationDate || ''
         },
         gmail: {
           email: project.gmail?.email || '',
@@ -134,8 +138,8 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
         themeCost: 0,
         fullValue: '',
         advancePayment: '',
-        domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '' },
-        hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '' },
+        domainPlatform: { platformName: '', username: '', password: '', email: '', cost: '', registrationDate: '', expirationDate: '' },
+        hostingPlatform: { type: 'shared', provider: '', username: '', password: '', email: '', cost: '', registrationDate: '', expirationDate: '' },
         gmail: { email: '', password: '' },
         wpAdmin: { url: '', username: '', password: '' },
         cpanel: { url: '', username: '', password: '' }
@@ -422,7 +426,7 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 max-w-5xl mx-auto shadow-2xl relative">
+    <form onSubmit={handleSubmit} className="space-y-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 w-full shadow-2xl relative">
       <div className="flex items-center justify-between border-b border-slate-800 pb-5">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
@@ -822,6 +826,22 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm"
               />
             </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Registration Date</label>
+              <DatePicker
+                value={formData.domainPlatform.registrationDate || ''}
+                onChange={(dateStr) => handleNestedChange('domainPlatform', 'registrationDate', dateStr)}
+                placeholder="Select Reg Date"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-1">Expiration Date</label>
+              <DatePicker
+                value={formData.domainPlatform.expirationDate || ''}
+                onChange={(dateStr) => handleNestedChange('domainPlatform', 'expirationDate', dateStr)}
+                placeholder="Select Expiry Date"
+              />
+            </div>
           </div>
 
           {/* Hosting Platform Info */}
@@ -909,6 +929,26 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 px-3 text-white text-sm"
               />
             </div>
+            {formData.hostingPlatform.type === 'shared' && (
+              <>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-400 mb-1">Hosting Registration Date</label>
+                  <DatePicker
+                    value={formData.hostingPlatform.registrationDate || ''}
+                    onChange={(dateStr) => handleNestedChange('hostingPlatform', 'registrationDate', dateStr)}
+                    placeholder="Select Reg Date"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-400 mb-1">Hosting Expiration Date</label>
+                  <DatePicker
+                    value={formData.hostingPlatform.expirationDate || ''}
+                    onChange={(dateStr) => handleNestedChange('hostingPlatform', 'expirationDate', dateStr)}
+                    placeholder="Select Expiry Date"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Gmail Credentials */}
