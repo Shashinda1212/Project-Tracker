@@ -17,6 +17,13 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard({ projects, onSelectProject, onCreateProject }) {
+  const getProjectOutstandingBalance = (p) => {
+    const full = p.fullValue || 0;
+    const adv = p.advancePayment || 0;
+    const other = (p.paymentsList || []).reduce((s, pay) => s + pay.amount, 0);
+    return full - (adv + other);
+  };
+
   // Calculations & Aggregates
   const totalProjects = projects.length;
   const ongoingProjects = projects.filter(p => p.status === 'ongoing').length;
@@ -31,7 +38,11 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
     return sum + adv + additional;
   }, 0);
 
-  const totalDue = totalValue - totalPaid;
+  const nonCancelledProjects = projects.filter(p => p.status !== 'cancelled');
+  const cancelledProjectsList = projects.filter(p => p.status === 'cancelled');
+
+  const totalDue = nonCancelledProjects.reduce((sum, p) => sum + getProjectOutstandingBalance(p), 0);
+  const totalCancelledDue = cancelledProjectsList.reduce((sum, p) => sum + getProjectOutstandingBalance(p), 0);
 
   const totalExpenses = projects.reduce((sum, p) => {
     const domainCost = p.domainPlatform?.cost || 0;
@@ -115,13 +126,6 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
     }
   };
 
-  const getProjectOutstandingBalance = (p) => {
-    const full = p.fullValue || 0;
-    const adv = p.advancePayment || 0;
-    const other = (p.paymentsList || []).reduce((s, pay) => s + pay.amount, 0);
-    return full - (adv + other);
-  };
-
   const getProjectInitials = (name) => {
     if (!name) return '??';
     return name
@@ -156,7 +160,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
       <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Stat Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Active Projects Stat */}
         <div className="bg-[#0b1329]/60 backdrop-blur-md border border-purple-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(168,85,247,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
@@ -234,6 +238,25 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
             <div className="text-xs text-slate-500 mt-1 flex items-center space-x-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-500" />
               <span>Next Target: <strong className="font-semibold text-slate-300">{upcomingDeadlines[0]?.deliveryDate || 'N/A'}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Cancelled Outstanding Stat */}
+        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-red-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(239,68,68,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-red-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
+            <Wallet className="w-5 h-5" />
+          </div>
+          <div className="flex-grow min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cancelled Outstanding</span>
+              <DollarSign className="w-3.5 h-3.5 text-red-500/40" />
+            </div>
+            <div className="text-2xl font-bold text-red-400 mt-1">
+              LKR {totalCancelledDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              Balances from cancelled projects
             </div>
           </div>
         </div>
