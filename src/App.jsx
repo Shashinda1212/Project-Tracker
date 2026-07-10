@@ -8,11 +8,30 @@ import Dashboard from './components/Dashboard';
 import ProjectsTab from './components/ProjectsTab';
 import SettingsTab from './components/SettingsTab';
 import ChangeMasterKeyModal from './components/ChangeMasterKeyModal';
-import { Key, ShieldAlert, ShieldCheck, LogOut, TrendingUp, X, LayoutDashboard, FolderKanban, Settings } from 'lucide-react';
+import { Key, ShieldAlert, ShieldCheck, LogOut, TrendingUp, X, LayoutDashboard, FolderKanban, Settings, Sun, Moon } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
   const [projects, setProjects] = useState([]);
   const [dbError, setDbError] = useState(null);
 
@@ -231,12 +250,12 @@ export default function App() {
           </div>
 
           {/* Premium Navigation Tabs from Screenshot */}
-          <nav className="flex items-center bg-[#0d1527] border border-slate-900/60 p-1.5 rounded-xl space-x-1 shadow-inner">
+          <nav className="flex items-center bg-slate-900 border border-slate-900/60 p-1.5 rounded-xl space-x-1 shadow-inner">
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-2 text-xs font-bold py-2 px-4 rounded-lg transition-all cursor-pointer ${
                 activeTab === 'dashboard'
-                  ? 'bg-slate-800 text-white shadow-sm border border-slate-700/50'
+                  ? 'bg-slate-800 text-slate-100 shadow-sm border border-slate-700/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
               }`}
             >
@@ -249,7 +268,7 @@ export default function App() {
               }}
               className={`flex items-center gap-2 text-xs font-bold py-2 px-4 rounded-lg transition-all cursor-pointer ${
                 activeTab === 'projects'
-                  ? 'bg-slate-800 text-white shadow-sm border border-slate-700/50'
+                  ? 'bg-slate-800 text-slate-100 shadow-sm border border-slate-700/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
               }`}
             >
@@ -260,7 +279,7 @@ export default function App() {
               onClick={() => setActiveTab('settings')}
               className={`flex items-center gap-2 text-xs font-bold py-2 px-4 rounded-lg transition-all cursor-pointer ${
                 activeTab === 'settings'
-                  ? 'bg-slate-800 text-white shadow-sm border border-slate-700/50'
+                  ? 'bg-slate-800 text-slate-100 shadow-sm border border-slate-700/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
               }`}
             >
@@ -319,8 +338,16 @@ export default function App() {
             </div>
 
             <button
+              onClick={toggleTheme}
+              className="text-slate-400 hover:text-slate-100 p-2 hover:bg-slate-900/60 rounded-xl transition-colors cursor-pointer"
+              title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            <button
               onClick={handleLogout}
-              className="text-slate-400 hover:text-white p-2 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
+              className="text-slate-400 hover:text-slate-100 p-2 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-5 h-5" />

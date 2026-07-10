@@ -382,7 +382,7 @@ export default function SettingsTab({
                 <div className="py-6 flex flex-col items-center justify-center space-y-4 text-center">
                   <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-white">
+                    <p className="text-xs font-bold text-slate-100">
                       {migrateStatus === 'validating' ? 'Validating Current Master Key...' : 'Migrating Firestore Documents...'}
                     </p>
                     {migrateStatus === 'migrating' && (
@@ -408,7 +408,7 @@ export default function SettingsTab({
                   <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 max-w-xs mx-auto text-xs grid grid-cols-3 gap-2">
                     <div>
                       <span className="text-slate-500 block">Migrated</span>
-                      <strong className="text-white">{summary.success}</strong>
+                      <strong className="text-slate-100">{summary.success}</strong>
                     </div>
                     <div>
                       <span className="text-slate-500 block">Skipped</span>

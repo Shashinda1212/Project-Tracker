@@ -138,10 +138,10 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
   };
 
   const getProjectColorClass = (name) => {
-    if (!name) return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    if (!name) return 'bg-brand-500/10 text-brand-400 border-brand-500/20';
     const colors = [
-      'bg-purple-500/10 text-purple-400 border-purple-500/20',
-      'bg-amber-500/10 text-amber-450 border-amber-500/20 text-amber-400',
+      'bg-brand-500/10 text-brand-400 border-brand-500/20',
+      'bg-amber-500/10 text-amber-400 border-amber-500/20',
       'bg-sky-500/10 text-sky-400 border-sky-500/20',
       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
       'bg-rose-500/10 text-rose-400 border-rose-500/20'
@@ -162,18 +162,18 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
       {/* Stat Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Active Projects Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-purple-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(168,85,247,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-brand-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(59,130,246,0.15)] flex items-center gap-4 relative overflow-hidden group hover:border-brand-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 flex-shrink-0">
             <Folder className="w-5 h-5" />
           </div>
           <div className="flex-grow min-w-0">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Projects</span>
-              <span className="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 py-0.5 px-2.5 rounded-full font-bold uppercase tracking-wider">
+              <span className="text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20 py-0.5 px-2.5 rounded-full font-bold uppercase tracking-wider">
                 {ongoingProjects} / {totalProjects}
               </span>
             </div>
-            <div className="text-2xl font-bold text-white mt-1">
+            <div className="text-2xl font-bold text-slate-100 mt-1">
               {ongoingProjects} <span className="text-sm font-semibold text-slate-400">Ongoing</span>
             </div>
             <div className="text-xs text-slate-500 mt-1 flex items-center space-x-2">
@@ -185,7 +185,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Booked Value Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(16,185,129,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-emerald-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(16,185,129,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
             <DollarSign className="w-5 h-5" />
           </div>
@@ -194,7 +194,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Booked Value</span>
               <DollarSign className="w-3.5 h-3.5 text-emerald-500/40" />
             </div>
-            <div className="text-2xl font-bold text-white mt-1">
+            <div className="text-2xl font-bold text-slate-100 mt-1">
               LKR {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-slate-500 mt-1">
@@ -204,7 +204,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Collected Revenue Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-sky-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(14,165,233,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-sky-500/40 transition-all duration-300">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-sky-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(14,165,233,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-sky-500/40 transition-all duration-300">
           <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 flex-shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
@@ -223,7 +223,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Outstanding Dues Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-amber-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(245,158,11,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-amber-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(245,158,11,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300">
           <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
             <Wallet className="w-5 h-5" />
           </div>
@@ -243,7 +243,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Cancelled Outstanding Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-red-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(239,68,68,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-red-500/40 transition-all duration-300">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-red-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(239,68,68,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-red-500/40 transition-all duration-300">
           <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
             <Wallet className="w-5 h-5" />
           </div>
@@ -262,16 +262,16 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Overall Net Profit Stat */}
-        <div className="bg-[#0b1329]/60 backdrop-blur-md border border-fuchsia-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(217,70,239,0.12)] flex items-center gap-4 relative overflow-hidden group hover:border-fuchsia-500/40 transition-all duration-300">
-          <div className="w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center text-fuchsia-400 flex-shrink-0">
+        <div className="bg-slate-900/60 backdrop-blur-md border border-brand-500/20 rounded-2xl p-5 shadow-[0_0_20px_-3px_rgba(59,130,246,0.15)] flex items-center gap-4 relative overflow-hidden group hover:border-brand-500/40 transition-all duration-300">
+          <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 flex-shrink-0">
             <Coins className="w-5 h-5" />
           </div>
           <div className="flex-grow min-w-0">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overall Net Profit</span>
-              <DollarSign className="w-3.5 h-3.5 text-fuchsia-500/40" />
+              <DollarSign className="w-3.5 h-3.5 text-brand-500/40" />
             </div>
-            <div className="text-2xl font-bold text-fuchsia-400 mt-1">
+            <div className="text-2xl font-bold text-brand-400 mt-1">
               LKR {totalNetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-slate-500 mt-1">
@@ -300,7 +300,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
               >
                 <div className="min-w-0 flex-grow">
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm truncate max-w-[130px] sm:max-w-[180px]">
+                    <span className="font-bold text-slate-100 group-hover:text-brand-300 transition-colors text-sm truncate max-w-[130px] sm:max-w-[180px]">
                       {projectName}
                     </span>
                     <span className={`text-[9px] font-bold uppercase py-0.5 px-2 rounded-full border flex items-center gap-1 ${
@@ -343,11 +343,11 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
       {/* Main Dashboard Sub-grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity Table (Left columns) */}
-        <div className="lg:col-span-2 bg-[#0b1329]/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+        <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
           <div>
             <div className="flex items-center justify-between pb-4 border-b border-slate-850">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
@@ -385,7 +385,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
                                 {initials}
                               </div>
                               <div className="min-w-0">
-                                <span className="font-bold text-white group-hover:text-brand-300 transition-colors block text-sm truncate max-w-[160px] sm:max-w-[240px]">
+                                <span className="font-bold text-slate-100 group-hover:text-brand-300 transition-colors block text-sm truncate max-w-[160px] sm:max-w-[240px]">
                                   {project.projectName}
                                 </span>
                                 <span className="text-xs text-slate-500 block mt-0.5 font-medium truncate max-w-[160px] sm:max-w-[240px]">{project.clientName || 'No Client'}</span>
@@ -433,11 +433,11 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
         </div>
 
         {/* Upcoming Deadlines (Right column) */}
-        <div className="bg-[#0b1329]/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+        <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-slate-850">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                <div className="w-9 h-9 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
                   <Target className="w-4 h-4" />
                 </div>
                 <div>
@@ -463,7 +463,7 @@ export default function Dashboard({ projects, onSelectProject, onCreateProject }
                       }`}
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <span className="font-bold text-white text-sm group-hover:text-brand-300 transition-colors truncate">
+                        <span className="font-bold text-slate-100 text-sm group-hover:text-brand-300 transition-colors truncate">
                           {project.projectName}
                         </span>
                         {isOverdue && (

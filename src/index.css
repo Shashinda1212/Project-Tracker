@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand-50: #f5f3ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-300: #c4b5fd;
-  --color-brand-400: #a78bfa;
-  --color-brand-500: #8b5cf6;
-  --color-brand-600: #7c3aed;
-  --color-brand-700: #6d28d9;
-  --color-brand-800: #5b21b6;
-  --color-brand-900: #4c1d95;
-  --color-brand-950: #2e1065;
+:root {
+  /* Light mode theme defaults */
+  --theme-slate-550: #475569;
+  --theme-slate-50: #0f172a;
+  --theme-slate-100: #0f172a;
+  --theme-slate-200: #1e293b;
+  --theme-slate-300: #334155;
+  --theme-slate-400: #475569;
+  --theme-slate-500: #64748b;
+  --theme-slate-600: #94a3b8;
+  --theme-slate-700: #cbd5e1;
+  --theme-slate-800: #e2e8f0;
+  --theme-slate-850: #f1f5f9;
+  --theme-slate-900: #ffffff;
+  --theme-slate-905: #f8fafc;
+  --theme-slate-950: #f3f4f6; /* background */
+}
 
-  --color-slate-950: #070a13;
-  --color-slate-905: #0b1120;
-  --color-slate-850: #16223f;
+:root.dark {
+  /* Dark mode theme defaults */
+  --theme-slate-50: #f8fafc;
+  --theme-slate-100: #f1f5f9;
+  --theme-slate-200: #e2e8f0;
+  --theme-slate-300: #cbd5e1;
+  --theme-slate-400: #94a3b8;
+  --theme-slate-500: #64748b;
+  --theme-slate-600: #475569;
+  --theme-slate-700: #334155;
+  --theme-slate-800: #1e293b;
+  --theme-slate-850: #111a2e;
+  --theme-slate-900: #0a0f1d;
+  --theme-slate-905: #080d1a;
+  --theme-slate-950: #030712; /* background */
+}
+
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+
+  --color-slate-50: var(--theme-slate-50);
+  --color-slate-100: var(--theme-slate-100);
+  --color-slate-200: var(--theme-slate-200);
+  --color-slate-300: var(--theme-slate-300);
+  --color-slate-400: var(--theme-slate-400);
+  --color-slate-500: var(--theme-slate-500);
+  --color-slate-600: var(--theme-slate-600);
+  --color-slate-700: var(--theme-slate-700);
+  --color-slate-800: var(--theme-slate-800);
+  --color-slate-850: var(--theme-slate-850);
+  --color-slate-900: var(--theme-slate-900);
+  --color-slate-905: var(--theme-slate-905);
+  --color-slate-950: var(--theme-slate-950);
 }
 
 body {
   @apply bg-slate-950 text-slate-100 antialiased selection:bg-brand-500 selection:text-white;
   font-family: 'Inter', system-ui, sans-serif;
+}
+
+body, header, nav, div, section, table, tr, td, th, input, select, textarea, button, span, p, h1, h2, h3, h4, h5, h6 {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Force headings to adapt text contrast in light mode */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--theme-slate-100) !important;
 }
 
 /* Custom Webkit scrollbar for premium feel */
@@ -41,7 +97,14 @@ body {
   @apply bg-slate-700;
 }
 
-/* Input elements autofocus outline */
-input:focus, select:focus, textarea:focus {
+/* Input elements autofocus outline & styling overrides */
+input, select, textarea {
   @apply outline-none ring-2 ring-brand-500/50 border-brand-500/50;
+  color: var(--theme-slate-100) !important;
+  background-color: var(--theme-slate-900) !important;
+  border-color: var(--theme-slate-800) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--theme-slate-400) !important;
 }

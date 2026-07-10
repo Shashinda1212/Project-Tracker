@@ -954,7 +954,7 @@ export default function ProjectForm({ project, onSubmit, onCancel, masterKey, on
           {/* Gmail Credentials */}
           <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 space-y-4">
             <div className="flex items-center space-x-2 text-white font-semibold text-sm mb-1">
-              <Mail className="w-4 h-4 text-violet-400" />
+              <Mail className="w-4 h-4 text-brand-400" />
               <span>Project Gmail</span>
             </div>
             <div className="md:col-span-1">

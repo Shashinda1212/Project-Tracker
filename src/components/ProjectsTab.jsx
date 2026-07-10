@@ -229,7 +229,7 @@ export default function ProjectsTab({
                         <GripVertical className="w-4 h-4 mx-auto" />
                       </td>
                       <td className="px-6 py-4.5">
-                        <div className="font-bold text-white group-hover:text-brand-300 transition-colors text-sm">
+                        <div className="font-bold text-slate-100 group-hover:text-brand-300 transition-colors text-sm">
                           {project.projectName}
                         </div>
                         <div className="text-xs text-slate-400 mt-1 font-medium flex items-center space-x-1">

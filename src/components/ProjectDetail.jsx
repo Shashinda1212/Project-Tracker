@@ -431,7 +431,7 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
 
               {/* Project Gmail Credentials Card */}
               <div className="bg-slate-950 border border-slate-800/60 rounded-xl p-5 space-y-3.5">
-                <span className="text-sm font-semibold text-violet-400 flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-brand-400 flex items-center gap-1.5">
                   <Mail className="w-4 h-4" /> Gmail Credentials
                 </span>
                 <div className="text-xs space-y-2">
