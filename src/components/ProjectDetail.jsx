@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { X, Calendar, User, Phone, CheckCircle, Clock, XCircle, Globe, Server, Mail, DollarSign, Edit, Key, Copy, Check, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { X, Calendar, User, Phone, CheckCircle, Clock, XCircle, Globe, Server, Mail, DollarSign, Edit, Key, Copy, Check, Eye, EyeOff, ArrowLeft, FileText, Trash2, Printer, Plus } from 'lucide-react';
 import { decryptPassword } from '../services/crypto';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import InvoiceGenerator, { printInvoiceContent } from './InvoiceGenerator';
 
 export default function ProjectDetail({ project, onEdit, onClose, masterKey, onPromptMasterKey }) {
   const [copiedField, setCopiedField] = useState(null);
@@ -11,6 +14,26 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
     wpAdmin: false,
     cpanel: false
   });
+  const [activeSubTab, setActiveSubTab] = useState('overview'); // 'overview', 'invoices'
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+
+  const formatCurrency = (val) => {
+    if (val === '' || val === undefined || val === null) return '0';
+    return Number(val).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  };
+
+  const handleDeleteInvoice = async (invoiceNumber) => {
+    if (window.confirm(`Are you sure you want to delete invoice ${invoiceNumber} from history?`)) {
+      try {
+        const updatedInvoices = (project.invoices || []).filter(inv => inv.invoiceNumber !== invoiceNumber);
+        const projectRef = doc(db, 'projects', project.id);
+        await updateDoc(projectRef, { invoices: updatedInvoices });
+      } catch (error) {
+        console.error("Error deleting invoice:", error);
+        alert("Failed to delete invoice: " + error.message);
+      }
+    }
+  };
 
   if (!project) return null;
 
@@ -123,10 +146,36 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
           </div>
         </div>
 
+        {/* Sub Tab Navigation */}
+        <div className="flex border-b border-slate-800/80 bg-slate-950/20 px-6">
+          <button
+            onClick={() => { setActiveSubTab('overview'); setIsGeneratingInvoice(false); }}
+            className={`py-3.5 px-4 text-xs font-bold uppercase tracking-wider border-b-2 cursor-pointer transition-all ${
+              activeSubTab === 'overview'
+                ? 'border-brand-500 text-brand-400 font-extrabold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Project Details
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('invoices'); }}
+            className={`py-3.5 px-4 text-xs font-bold uppercase tracking-wider border-b-2 cursor-pointer transition-all ${
+              activeSubTab === 'invoices'
+                ? 'border-brand-500 text-brand-400 font-extrabold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Invoices & Billing
+          </button>
+        </div>
+
         {/* Content Body - Scrollable */}
         <div className="p-6 md:p-8 overflow-y-auto space-y-8 flex-grow">
-          {/* General Information Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {activeSubTab === 'overview' ? (
+            <>
+              {/* General Information Card */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 bg-slate-950 border border-slate-800/60 rounded-xl p-5 space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-brand-400">Client Info</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -596,7 +645,97 @@ export default function ProjectDetail({ project, onEdit, onClose, masterKey, onP
               {project.notes || <span className="text-slate-500 italic">No additional notes added for this project.</span>}
             </p>
           </div>
-        </div>
+          </>
+        ) : (
+          isGeneratingInvoice ? (
+            <InvoiceGenerator 
+              project={project} 
+              onCancel={() => setIsGeneratingInvoice(false)}
+              onSaveSuccess={() => setIsGeneratingInvoice(false)}
+            />
+          ) : (
+            <div className="space-y-6 animate-fadeIn text-slate-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-brand-400">Invoice History</h3>
+                  <p className="text-xs text-slate-500 mt-1">Manage and reprint project invoices</p>
+                </div>
+                <button
+                  onClick={() => setIsGeneratingInvoice(true)}
+                  className="bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs py-2 px-4 rounded-xl flex items-center space-x-1.5 shadow-md shadow-brand-500/10 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Generate Invoice</span>
+                </button>
+              </div>
+
+              {/* History List */}
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+                {project.invoices && project.invoices.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-850 bg-slate-900/50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          <th className="px-6 py-4">Invoice No</th>
+                          <th className="px-6 py-4">Date</th>
+                          <th className="px-6 py-4">Bill To</th>
+                          <th className="px-6 py-4 text-right">Total Due</th>
+                          <th className="px-6 py-4"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/40">
+                        {project.invoices.map((inv, idx) => {
+                          const showBreakdown = inv.discount > 0 || inv.advance > 0;
+                          const finalVal = showBreakdown ? inv.totalDue : inv.total;
+                          return (
+                            <tr key={inv.invoiceNumber || idx} className="hover:bg-slate-900/35 transition-colors">
+                              <td className="px-6 py-4.5 font-bold text-slate-200">
+                                <span className="flex items-center gap-1.5">
+                                  <FileText className="w-4 h-4 text-slate-500" />
+                                  {inv.invoiceNumber}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4.5 text-slate-400 font-semibold">{inv.date}</td>
+                              <td className="px-6 py-4.5 text-slate-300 font-semibold truncate max-w-[200px]">{inv.billTo}</td>
+                              <td className="px-6 py-4.5 text-right font-mono font-bold text-slate-200">
+                                {formatCurrency(finalVal)} LKR
+                              </td>
+                              <td className="px-6 py-4.5 text-right">
+                                <div className="flex items-center justify-end space-x-2">
+                                  <button
+                                    onClick={() => printInvoiceContent(inv)}
+                                    className="text-brand-400 hover:text-brand-300 hover:bg-brand-950/20 p-2 rounded-lg transition-colors cursor-pointer"
+                                    title="Print/Download Invoice"
+                                  >
+                                    <Printer className="w-4.5 h-4.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteInvoice(inv.invoiceNumber)}
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-950/20 p-2 rounded-lg transition-colors cursor-pointer"
+                                    title="Delete Invoice"
+                                  >
+                                    <Trash2 className="w-4.5 h-4.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-12 text-center text-slate-500">
+                    <FileText className="w-12 h-12 text-slate-750 mx-auto mb-4" />
+                    <p className="text-sm font-semibold">No invoices generated yet for this project.</p>
+                    <p className="text-xs text-slate-600 mt-1">Click "Generate Invoice" above to create your first invoice.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        )}
+      </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-slate-800 flex items-center justify-end text-xs text-slate-500 bg-slate-950/40 rounded-b-2xl">
